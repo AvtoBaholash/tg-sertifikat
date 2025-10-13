@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>MathQuill with Custom Keyboard</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.css" />
+  <style>
+    * {
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      text-align: center;
+      background: var(--tg-theme-bg-color, #f9f9f9);
+      color: var(--tg-theme-text-color, #000);
+      margin: 0;
+      overflow-x: hidden;
+    }
+    #math-field {
+      display: inline-block;
+      width: 90%;
+      min-height: 60px;
+      font-size: 24px;
+      border: 2px solid var(--tg-theme-button-color, #ccc);
+      border-radius: 8px;
+      padding: 10px;
+      background: var(--tg-theme-secondary-bg-color, #fff);
+      cursor: pointer;
+      /* Prevent mobile keyboard */
+      -webkit-user-select: none;
+      user-select: none;
+      touch-action: none;
+    }
+    #math-field * {
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    .keyboard {
+      margin-top: 20px;
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 10px;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .keyboard button {
+      font-size: 18px;
+      padding: 15px;
+      border: none;
+      border-radius: 8px;
+      background: var(--tg-theme-button-color, #3390ec);
+      color: var(--tg-theme-button-text-color, #fff);
+      cursor: pointer;
+      transition: opacity 0.2s;
+      font-weight: bold;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .keyboard button:active {
+      opacity: 0.7;
+    }
+    #submit-btn {
+      margin-top: 20px;
+      width: 90%;
+      max-width: 500px;
+      padding: 15px;
+      font-size: 18px;
+      background: var(--tg-theme-button-color, #3390ec);
+      color: var(--tg-theme-button-text-color, #fff);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    #submit-btn:active {
+      opacity: 0.7;
+    }
+  </style>
+</head>
+<body>
+  <h2>🖥️ MathQuill with Custom Math Keyboard</h2>
+  <div>
+    <span id="math-field"></span>
+  </div>
+
+  <div class="keyboard">
+    <button data-cmd="7">7</button>
+    <button data-cmd="8">8</button>
+    <button data-cmd="9">9</button>
+    <button data-cmd="+">+</button>
+    <button data-cmd="-">−</button>
+    <button data-cmd="*">×</button>
+
+    <button data-cmd="4">4</button>
+    <button data-cmd="5">5</button>
+    <button data-cmd="6">6</button>
+    <button data-cmd="/">÷</button>
+    <button data-cmd="=">=</button>
+    <button data-cmd="<"><</button>
+
+    <button data-cmd="1">1</button>
+    <button data-cmd="2">2</button>
+    <button data-cmd="3">3</button>
+    <button data-cmd=">">></button>
+    <button data-fn="power">x^n</button>
+    <button data-fn="frac">a/b</button>
+
+    <button data-cmd="0">0</button>
+    <button data-cmd=".">.</button>
+    <button data-fn="sqrt">√</button>
+    <button data-cmd="x">x</button>
+    <button data-cmd="y">y</button>
+    <button data-cmd="z">z</button>
+
+    <button data-cmd="a">a</button>
+    <button data-cmd="b">b</button>
+    <button data-cmd="c">c</button>
+    <button data-fn="pi">π</button>
+    <button data-cmd="e">e</button>
+    <button onclick="mathField.keystroke('Backspace')">⌫</button>
+  </div>
+
+  <button id="submit-btn">📤 Send to Bot</button>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.min.js"></script>
+  <script>
+    // Initialize Telegram Web App
+    let tg = window.Telegram.WebApp;
+    tg.expand(); // Expand to full height
+    tg.ready(); // Signal that the app is ready
+
+    // Apply Telegram theme colors
+    document.body.style.backgroundColor = tg.themeParams.bg_color || '#f9f9f9';
+    document.body.style.color = tg.themeParams.text_color || '#000000';
+
+    // Initialize MathQuill
+    var MQ = MathQuill.getInterface(2);
+    var mathFieldSpan = document.getElementById('math-field');
+    window.mathField = MQ.MathField(mathFieldSpan, {
+      spaceBehavesLikeTab: true,
+      // Prevent native keyboard on mobile
+      handlers: {
+        edit: function() {
+          // Custom edit handler to prevent keyboard
+        }
+      }
+    });
+
+    // Prevent the native keyboard from appearing
+    mathFieldSpan.addEventListener('touchstart', function(e) {
+      e.preventDefault();
+      mathField.focus();
+    }, { passive: false });
+
+    mathFieldSpan.addEventListener('click', function(e) {
+      e.preventDefault();
+      mathField.focus();
+    });
+
+    // Disable text selection and context menu
+    document.addEventListener('selectstart', function(e) {
+      e.preventDefault();
+    });
+
+    document.addEventListener('contextmenu', function(e) {
+      e.preventDefault();
+    });
+
+    // Handle keyboard button clicks
+    document.querySelectorAll(".keyboard button").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        let cmd = btn.getAttribute("data-cmd");
+        let fn = btn.getAttribute("data-fn");
+
+        if (cmd) {
+          mathField.write(cmd);
+          mathField.focus();
+        } else if (fn === "frac") {
+          mathField.cmd("\\frac");
+          mathField.focus();
+        } else if (fn === "sqrt") {
+          mathField.cmd("\\sqrt");
+          mathField.focus();
+        } else if (fn === "pi") {
+          mathField.cmd("\\pi");
+          mathField.focus();
+        } else if (fn === "power") {
+          mathField.cmd("^");
+          mathField.focus();
+        }
+      });
+    });
+
+    // Handle submit button
+    document.getElementById('submit-btn').addEventListener('click', function() {
+      const latex = mathField.latex(); // Get the LaTeX representation
+      const text = mathField.text(); // Get plain text representation
+
+      if (!latex || latex.trim() === '') {
+        tg.showAlert('Please enter a math expression first!');
+        return;
+      }
+
+      // Send data back to the bot
+      tg.sendData(JSON.stringify({
+        latex: latex,
+        text: text,
+        timestamp: new Date().toISOString()
+      }));
+
+      // Close the Web App
+      tg.close();
+    });
+
+    // Enable the main button as an alternative submit method
+    tg.MainButton.text = "Send Expression";
+    tg.MainButton.show();
+    tg.MainButton.onClick(function() {
+      document.getElementById('submit-btn').click();
+    });
+  </script>
+</body>
+</html>
