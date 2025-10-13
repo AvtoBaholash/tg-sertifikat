@@ -35,19 +35,48 @@
       -webkit-user-select: none;
       user-select: none;
       touch-action: none;
+      pointer-events: auto;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    #math-field.focused {
+      border-color: var(--tg-theme-button-color, #3390ec);
+      box-shadow: 0 0 0 3px rgba(51, 144, 236, 0.2);
     }
     #math-field * {
       -webkit-user-select: none;
       user-select: none;
+      pointer-events: none;
+    }
+    #math-field textarea,
+    #math-field input {
+      position: absolute;
+      opacity: 0;
+      height: 0;
+      width: 0;
+      pointer-events: none;
     }
     .keyboard {
       margin-top: 20px;
-      display: grid;
+      display: none; /* Hidden by default */
       grid-template-columns: repeat(6, 1fr);
       gap: 10px;
       max-width: 500px;
       margin-left: auto;
       margin-right: auto;
+      animation: slideUp 0.3s ease-out;
+    }
+    .keyboard.visible {
+      display: grid; /* Show when visible class is added */
+    }
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
     .keyboard button {
       font-size: 18px;
@@ -76,9 +105,19 @@
       border-radius: 8px;
       cursor: pointer;
       font-weight: bold;
+      display: none; /* Hidden by default */
+    }
+    #submit-btn.visible {
+      display: block; /* Show when visible class is added */
     }
     #submit-btn:active {
       opacity: 0.7;
+    }
+    #input-placeholder {
+      color: var(--tg-theme-hint-color, #999);
+      font-size: 16px;
+      margin-top: 10px;
+      font-style: italic;
     }
   </style>
 </head>
@@ -87,8 +126,9 @@
   <div>
     <span id="math-field"></span>
   </div>
+  <p id="input-placeholder">👆 Click above to start typing</p>
 
-  <div class="keyboard">
+  <div class="keyboard" id="custom-keyboard">
     <button data-cmd="7">7</button>
     <button data-cmd="8">8</button>
     <button data-cmd="9">9</button>
@@ -142,26 +182,80 @@
     // Initialize MathQuill
     var MQ = MathQuill.getInterface(2);
     var mathFieldSpan = document.getElementById('math-field');
+    var customKeyboard = document.getElementById('custom-keyboard');
+    var submitBtn = document.getElementById('submit-btn');
+    var placeholder = document.getElementById('input-placeholder');
+    var keyboardVisible = false;
+
     window.mathField = MQ.MathField(mathFieldSpan, {
       spaceBehavesLikeTab: true,
-      // Prevent native keyboard on mobile
+      substituteTextarea: function() {
+        // Replace default textarea with a dummy that won't trigger keyboard
+        var dummy = document.createElement('span');
+        dummy.style.position = 'absolute';
+        dummy.style.opacity = '0';
+        dummy.style.height = '0';
+        dummy.style.width = '0';
+        dummy.style.pointerEvents = 'none';
+        return dummy;
+      },
       handlers: {
         edit: function() {
-          // Custom edit handler to prevent keyboard
+          // Custom edit handler
         }
       }
     });
 
-    // Prevent the native keyboard from appearing
+    // Function to show custom keyboard
+    function showKeyboard() {
+      if (!keyboardVisible) {
+        customKeyboard.classList.add('visible');
+        submitBtn.classList.add('visible');
+        if (placeholder) placeholder.style.display = 'none';
+        keyboardVisible = true;
+
+        // Don't actually focus the mathField to prevent keyboard
+        // Just show it as active
+        mathFieldSpan.classList.add('focused');
+      }
+    }
+
+    // Prevent any textareas/inputs inside from getting focus
+    mathFieldSpan.addEventListener('focusin', function(e) {
+      if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') {
+        e.preventDefault();
+        e.stopPropagation();
+        e.target.blur();
+      }
+    }, true);
+
+    // Prevent the native keyboard from appearing and show custom keyboard
     mathFieldSpan.addEventListener('touchstart', function(e) {
       e.preventDefault();
-      mathField.focus();
+      e.stopPropagation();
+      showKeyboard();
+
+      // Blur any active input to prevent keyboard
+      if (document.activeElement) {
+        document.activeElement.blur();
+      }
     }, { passive: false });
 
     mathFieldSpan.addEventListener('click', function(e) {
       e.preventDefault();
-      mathField.focus();
+      e.stopPropagation();
+      showKeyboard();
+
+      // Blur any active input to prevent keyboard
+      if (document.activeElement) {
+        document.activeElement.blur();
+      }
     });
+
+    mathFieldSpan.addEventListener('touchend', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }, { passive: false });
 
     // Disable text selection and context menu
     document.addEventListener('selectstart', function(e) {
@@ -176,26 +270,33 @@
     document.querySelectorAll(".keyboard button").forEach(btn => {
       btn.addEventListener("click", (e) => {
         e.preventDefault();
+        e.stopPropagation();
+
         let cmd = btn.getAttribute("data-cmd");
         let fn = btn.getAttribute("data-fn");
 
         if (cmd) {
           mathField.write(cmd);
-          mathField.focus();
         } else if (fn === "frac") {
           mathField.cmd("\\frac");
-          mathField.focus();
         } else if (fn === "sqrt") {
           mathField.cmd("\\sqrt");
-          mathField.focus();
         } else if (fn === "pi") {
           mathField.cmd("\\pi");
-          mathField.focus();
         } else if (fn === "power") {
           mathField.cmd("^");
-          mathField.focus();
+        }
+
+        // Prevent keyboard from appearing
+        if (document.activeElement && document.activeElement.blur) {
+          document.activeElement.blur();
         }
       });
+
+      // Prevent keyboard on touch
+      btn.addEventListener("touchstart", (e) => {
+        e.stopPropagation();
+      }, { passive: true });
     });
 
     // Handle submit button
