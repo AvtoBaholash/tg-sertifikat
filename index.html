@@ -427,20 +427,31 @@
         console.log('Query ID:', queryId);
 
         if (queryId) {
-          // Opened from inline button - use answerWebAppQuery approach
+          // Opened from inline/menu button - need to send to backend
           console.log('Opened from inline/menu button - using query mode');
+          console.log('Query ID exists:', queryId);
 
-          // For menu button, we need to show the result in chat differently
-          // Create a formatted message
+          // Since sendData doesn't work with inline buttons,
+          // we'll show an alert with the result and copy to clipboard
           const message = `✅ Matematik Ifoda:\n\n` +
                          `LaTeX: ${latex}\n` +
                          `Oddiy matn: ${text}\n\n` +
                          `Vaqt: ${new Date().toLocaleString('uz-UZ')}`;
 
-          tg.showAlert(message);
+          // Try to copy to clipboard
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(`${latex} = ${text}`).then(() => {
+              tg.showAlert(message + '\n\n📋 Ifoda clipboardga nusxalandi!');
+            }).catch(() => {
+              tg.showAlert(message);
+            });
+          } else {
+            tg.showAlert(message);
+          }
+
           setTimeout(() => {
             tg.close();
-          }, 1000);
+          }, 2000);
 
         } else if (typeof tg.sendData === 'function') {
           // Opened from keyboard button - use sendData

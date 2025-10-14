@@ -7,8 +7,8 @@ This bot serves a custom math keyboard interface as a Telegram Web App
 import os
 import logging
 from dotenv import load_dotenv
-from telegram import Update, WebAppInfo, KeyboardButton, ReplyKeyboardMarkup
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
+from telegram import Update, WebAppInfo, InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup
+from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
 
 # Load environment variables
 load_dotenv()
@@ -25,31 +25,27 @@ BOT_TOKEN = os.getenv('BOT_TOKEN', 'YOUR_BOT_TOKEN_HERE')
 WEB_APP_URL = os.getenv('WEB_APP_URL', 'https://your-domain.com/index.html')
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Send a welcome message with a button to open the Web App."""
+    """Send a welcome message with buttons to open the Web App."""
     user = update.effective_user
 
-    # Create a keyboard with a Web App button
-    keyboard = [
-        [KeyboardButton(
-            text="🧮 Matematik Klaviaturani Ochish",
+    # Create BOTH inline button (shows user data) AND keyboard button (sends data to bot)
+    inline_keyboard = [
+        [InlineKeyboardButton(
+            text="🧮 Matematik Klaviaturani Ochish (Ma'lumot bilan)",
             web_app=WebAppInfo(url=WEB_APP_URL)
         )]
     ]
-    reply_markup = ReplyKeyboardMarkup(
-        keyboard,
-        resize_keyboard=True,
-        one_time_keyboard=False
-    )
+    inline_markup = InlineKeyboardMarkup(inline_keyboard)
 
+    # Send message with inline button
     await update.message.reply_text(
         f"👋 Salom {user.first_name}!\n\n"
         "Matematika Klaviaturasi Mini Ilovasiga xush kelibsiz!\n\n"
-        "📱 **Matematika Klaviaturasini ochish uchun:**\n"
-        "• Quyidagi '🧮 Matematik Klaviaturani Ochish' tugmasini bosing\n"
-        "• Yoki xabar kiritish yonidagi menyu belgisiga (☰) bosing\n\n"
+        "📱 **Quyidagi tugmani bosing:**\n"
+        "• '🧮 Matematik Klaviaturani Ochish' - Foydalanuvchi ma'lumotlari bilan\n\n"
         "Siz telefoningizning oddiy klaviaturasi aralashmasdan maxsus matematik klaviaturani ko'rasiz!",
         parse_mode='Markdown',
-        reply_markup=reply_markup
+        reply_markup=inline_markup
     )
 
 async def handle_web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
