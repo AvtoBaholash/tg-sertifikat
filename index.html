@@ -426,49 +426,39 @@
         const queryId = tg.initDataUnsafe?.query_id;
         console.log('Query ID:', queryId);
 
-        if (queryId) {
-          // Opened from inline/menu button - need to send to backend
-          console.log('Opened from inline/menu button - using query mode');
-          console.log('Query ID exists:', queryId);
+        // Try to send data using sendData() - works for ALL button types in newer Telegram versions
+        if (typeof tg.sendData === 'function') {
+          console.log('Sending data using sendData()...');
+          console.log('Has query_id:', !!queryId);
 
-          // Since sendData doesn't work with inline buttons,
-          // we'll show an alert with the result and copy to clipboard
-          const message = `✅ Matematik Ifoda:\n\n` +
-                         `LaTeX: ${latex}\n` +
-                         `Oddiy matn: ${text}\n\n` +
-                         `Vaqt: ${new Date().toLocaleString('uz-UZ')}`;
+          try {
+            tg.sendData(jsonData);
+            console.log('Data sent successfully!');
 
-          // Try to copy to clipboard
-          if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(`${latex} = ${text}`).then(() => {
-              tg.showAlert(message + '\n\n📋 Ifoda clipboardga nusxalandi!');
-            }).catch(() => {
-              tg.showAlert(message);
+            // Close the Web App after a small delay
+            setTimeout(() => {
+              tg.close();
+            }, 100);
+
+          } catch (e) {
+            console.error('sendData failed:', e);
+
+            // Fallback: Show popup with result
+            tg.showPopup({
+              title: '✅ Ifoda Tayyor!',
+              message: `LaTeX: ${latex}\nMatn: ${text}\n\nMa'lumot yuborilmadi, lekin siz uni ko'rdingiz.`,
+              buttons: [
+                {id: 'close', type: 'close', text: 'Yopish'}
+              ]
+            }, function() {
+              tg.close();
             });
-          } else {
-            tg.showAlert(message);
           }
 
-          setTimeout(() => {
-            tg.close();
-          }, 2000);
-
-        } else if (typeof tg.sendData === 'function') {
-          // Opened from keyboard button - use sendData
-          console.log('Opened from keyboard button - using sendData');
-          tg.sendData(jsonData);
-          console.log('Data sent successfully');
-
-          // Close the Web App after a small delay to ensure data is sent
-          setTimeout(() => {
-            tg.close();
-          }, 100);
-
         } else {
-          console.error('No valid method to send data');
-          tg.showAlert('Iltimos, botdagi "🧮 Matematik Klaviaturani Ochish" tugmasidan foydalaning');
+          console.error('sendData is not available');
+          tg.showAlert('Xatolik: sendData funksiyasi mavjud emas');
           tg.MainButton.hideProgress();
-          return;
         }
 
       } catch (error) {
