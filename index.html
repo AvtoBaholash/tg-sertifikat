@@ -222,27 +222,32 @@
 
     // Display User Information from Telegram
     function displayUserInfo() {
+      console.log('=== Display User Info ===');
+      console.log('tg.initDataUnsafe:', tg.initDataUnsafe);
+      console.log('tg.initData:', tg.initData);
+
       const user = tg.initDataUnsafe?.user;
+      console.log('user:', user);
 
-      if (user) {
-        // Populate user information
-        document.getElementById('user-name').textContent =
-          `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'N/A';
+      // Get user info - try multiple sources
+      const firstName = user?.first_name || tg.initDataUnsafe?.user?.first_name || '';
+      const lastName = user?.last_name || tg.initDataUnsafe?.user?.last_name || '';
+      const username = user?.username || tg.initDataUnsafe?.user?.username || '';
+      const userId = user?.id || tg.initDataUnsafe?.user?.id || '';
+      const languageCode = user?.language_code || tg.initDataUnsafe?.user?.language_code || '';
 
-        document.getElementById('user-username').textContent =
-          user.username ? `@${user.username}` : 'Yo\'q';
+      console.log('Extracted:', {firstName, lastName, username, userId, languageCode});
 
-        document.getElementById('user-id').textContent = user.id || 'Yo\'q';
+      // Build full name
+      const fullName = `${firstName} ${lastName}`.trim();
 
-        document.getElementById('user-language').textContent =
-          user.language_code?.toUpperCase() || 'Yo\'q';
-      } else {
-        // Fallback for testing outside Telegram
-        document.getElementById('user-name').textContent = 'Demo Foydalanuvchi';
-        document.getElementById('user-username').textContent = '@demo';
-        document.getElementById('user-id').textContent = '123456789';
-        document.getElementById('user-language').textContent = 'UZ';
-      }
+      // Populate user information
+      document.getElementById('user-name').textContent = fullName || 'Ma\'lumot yo\'q';
+      document.getElementById('user-username').textContent = username ? `@${username}` : 'Yo\'q';
+      document.getElementById('user-id').textContent = userId || 'Yo\'q';
+      document.getElementById('user-language').textContent = languageCode ? languageCode.toUpperCase() : 'Yo\'q';
+
+      console.log('========================');
     }
 
     // Call the function to display user info on load
@@ -417,21 +422,44 @@
         const jsonData = JSON.stringify(payload);
         console.log('JSON data:', jsonData);
 
-        // Check if sendData is available
-        if (typeof tg.sendData === 'function') {
+        // Check how the app was opened
+        const queryId = tg.initDataUnsafe?.query_id;
+        console.log('Query ID:', queryId);
+
+        if (queryId) {
+          // Opened from inline button - use answerWebAppQuery approach
+          console.log('Opened from inline/menu button - using query mode');
+
+          // For menu button, we need to show the result in chat differently
+          // Create a formatted message
+          const message = `✅ Matematik Ifoda:\n\n` +
+                         `LaTeX: ${latex}\n` +
+                         `Oddiy matn: ${text}\n\n` +
+                         `Vaqt: ${new Date().toLocaleString('uz-UZ')}`;
+
+          tg.showAlert(message);
+          setTimeout(() => {
+            tg.close();
+          }, 1000);
+
+        } else if (typeof tg.sendData === 'function') {
+          // Opened from keyboard button - use sendData
+          console.log('Opened from keyboard button - using sendData');
           tg.sendData(jsonData);
           console.log('Data sent successfully');
+
+          // Close the Web App after a small delay to ensure data is sent
+          setTimeout(() => {
+            tg.close();
+          }, 100);
+
         } else {
-          console.error('tg.sendData is not available');
-          tg.showAlert('Xatolik: sendData funksiyasi mavjud emas');
+          console.error('No valid method to send data');
+          tg.showAlert('Iltimos, botdagi "🧮 Matematik Klaviaturani Ochish" tugmasidan foydalaning');
           tg.MainButton.hideProgress();
           return;
         }
 
-        // Close the Web App after a small delay to ensure data is sent
-        setTimeout(() => {
-          tg.close();
-        }, 100);
       } catch (error) {
         console.error('Error sending data:', error);
         tg.showAlert('Ma\'lumot yuborishda xatolik: ' + error.message);
