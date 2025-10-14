@@ -204,6 +204,15 @@
   <script>
     // Initialize Telegram Web App
     let tg = window.Telegram.WebApp;
+
+    // Debug: Log Telegram Web App info
+    console.log('=== Telegram Web App Initialized ===');
+    console.log('Version:', tg.version);
+    console.log('Platform:', tg.platform);
+    console.log('Is sendData available:', typeof tg.sendData);
+    console.log('initDataUnsafe:', tg.initDataUnsafe);
+    console.log('====================================');
+
     tg.expand(); // Expand to full height
     tg.ready(); // Signal that the app is ready
 
@@ -395,14 +404,39 @@
         // Metadata
         timestamp: new Date().toISOString(),
         platform: tg.platform || 'unknown',
-        version: tg.version || 'unknown'
+        version: tg.version || 'unknown',
+        source: tg.initDataUnsafe?.start_param || 'menu_button'
       };
 
-      // Send data back to the bot
-      tg.sendData(JSON.stringify(payload));
+      // Debug: Log the payload
+      console.log('Sending payload:', payload);
+      console.log('Telegram object:', tg);
 
-      // Close the Web App
-      tg.close();
+      try {
+        // Send data back to the bot
+        const jsonData = JSON.stringify(payload);
+        console.log('JSON data:', jsonData);
+
+        // Check if sendData is available
+        if (typeof tg.sendData === 'function') {
+          tg.sendData(jsonData);
+          console.log('Data sent successfully');
+        } else {
+          console.error('tg.sendData is not available');
+          tg.showAlert('Xatolik: sendData funksiyasi mavjud emas');
+          tg.MainButton.hideProgress();
+          return;
+        }
+
+        // Close the Web App after a small delay to ensure data is sent
+        setTimeout(() => {
+          tg.close();
+        }, 100);
+      } catch (error) {
+        console.error('Error sending data:', error);
+        tg.showAlert('Ma\'lumot yuborishda xatolik: ' + error.message);
+        tg.MainButton.hideProgress();
+      }
     }
 
     // Configure and setup Telegram's MainButton
