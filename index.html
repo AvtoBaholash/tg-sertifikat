@@ -93,26 +93,6 @@
     .keyboard button:active {
       opacity: 0.7;
     }
-    #submit-btn {
-      margin-top: 20px;
-      width: 90%;
-      max-width: 500px;
-      padding: 15px;
-      font-size: 18px;
-      background: var(--tg-theme-button-color, #3390ec);
-      color: var(--tg-theme-button-text-color, #fff);
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
-      display: none; /* Hidden by default */
-    }
-    #submit-btn.visible {
-      display: block; /* Show when visible class is added */
-    }
-    #submit-btn:active {
-      opacity: 0.7;
-    }
     #input-placeholder {
       color: var(--tg-theme-hint-color, #999);
       font-size: 16px;
@@ -219,8 +199,6 @@
     <button onclick="mathField.keystroke('Backspace')">⌫</button>
   </div>
 
-  <button id="submit-btn">📤 Send to Bot</button>
-
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.min.js"></script>
   <script>
@@ -265,7 +243,6 @@
     var MQ = MathQuill.getInterface(2);
     var mathFieldSpan = document.getElementById('math-field');
     var customKeyboard = document.getElementById('custom-keyboard');
-    var submitBtn = document.getElementById('submit-btn');
     var placeholder = document.getElementById('input-placeholder');
     var keyboardVisible = false;
 
@@ -288,13 +265,15 @@
       }
     });
 
-    // Function to show custom keyboard
+    // Function to show custom keyboard and enable MainButton
     function showKeyboard() {
       if (!keyboardVisible) {
         customKeyboard.classList.add('visible');
-        submitBtn.classList.add('visible');
         if (placeholder) placeholder.style.display = 'none';
         keyboardVisible = true;
+
+        // Enable Telegram's MainButton
+        tg.MainButton.show();
 
         // Don't actually focus the mathField to prevent keyboard
         // Just show it as active
@@ -381,8 +360,8 @@
       }, { passive: true });
     });
 
-    // Handle submit button
-    document.getElementById('submit-btn').addEventListener('click', function() {
+    // Function to handle submission
+    function handleSubmit() {
       const latex = mathField.latex(); // Get the LaTeX representation
       const text = mathField.text(); // Get plain text representation
 
@@ -390,6 +369,9 @@
         tg.showAlert('Please enter a math expression first!');
         return;
       }
+
+      // Show loading state on MainButton
+      tg.MainButton.showProgress();
 
       // Get user information
       const user = tg.initDataUnsafe?.user || {};
@@ -421,14 +403,18 @@
 
       // Close the Web App
       tg.close();
-    });
+    }
 
-    // Enable the main button as an alternative submit method
+    // Configure and setup Telegram's MainButton
     tg.MainButton.text = "Send Expression";
-    tg.MainButton.show();
-    tg.MainButton.onClick(function() {
-      document.getElementById('submit-btn').click();
-    });
+    tg.MainButton.color = tg.themeParams.button_color || "#3390ec";
+    tg.MainButton.textColor = tg.themeParams.button_text_color || "#ffffff";
+
+    // Initially hide the MainButton (show it when keyboard appears)
+    tg.MainButton.hide();
+
+    // Attach click handler to MainButton
+    tg.MainButton.onClick(handleSubmit);
   </script>
 </body>
 </html>
