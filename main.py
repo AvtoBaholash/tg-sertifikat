@@ -25,17 +25,31 @@ BOT_TOKEN = os.getenv('BOT_TOKEN', 'YOUR_BOT_TOKEN_HERE')
 WEB_APP_URL = os.getenv('WEB_APP_URL', 'https://your-domain.com/index.html')
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Send a welcome message. The Mini App is opened via the menu button."""
+    """Send a welcome message with a button to open the Web App."""
     user = update.effective_user
 
+    # Create a keyboard with a Web App button
+    keyboard = [
+        [KeyboardButton(
+            text="🧮 Matematik Klaviaturani Ochish",
+            web_app=WebAppInfo(url=WEB_APP_URL)
+        )]
+    ]
+    reply_markup = ReplyKeyboardMarkup(
+        keyboard,
+        resize_keyboard=True,
+        one_time_keyboard=False
+    )
+
     await update.message.reply_text(
-        f"👋 Hello {user.first_name}!\n\n"
-        "Welcome to the Math Keyboard Mini App!\n\n"
-        "📱 **To open the Math Keyboard:**\n"
-        "• Click the menu icon (☰) next to the message input\n"
-        "• Or tap the keyboard icon in the attachment menu\n\n"
-        "You'll see a custom mathematical keyboard without your phone's native keyboard interfering!",
-        parse_mode='Markdown'
+        f"👋 Salom {user.first_name}!\n\n"
+        "Matematika Klaviaturasi Mini Ilovasiga xush kelibsiz!\n\n"
+        "📱 **Matematika Klaviaturasini ochish uchun:**\n"
+        "• Quyidagi '🧮 Matematik Klaviaturani Ochish' tugmasini bosing\n"
+        "• Yoki xabar kiritish yonidagi menyu belgisiga (☰) bosing\n\n"
+        "Siz telefoningizning oddiy klaviaturasi aralashmasdan maxsus matematik klaviaturani ko'rasiz!",
+        parse_mode='Markdown',
+        reply_markup=reply_markup
     )
 
 async def handle_web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -49,6 +63,9 @@ async def handle_web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE
 
         # Parse the JSON data
         parsed_data = json.loads(data)
+
+        # Log the raw data for debugging
+        logger.info(f"Received Web App data: {data}")
 
         # Extract information
         latex = parsed_data.get('latex', 'N/A')
@@ -65,30 +82,36 @@ async def handle_web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE
         except:
             formatted_time = timestamp
 
-        # Build user information string
+        # Get user info from Telegram's update object as fallback
+        telegram_user = update.effective_user
+
+        # Build user information string - prefer Web App data, fallback to Telegram data
         user_name = f"{user_info.get('first_name', '')} {user_info.get('last_name', '')}".strip()
-        username = user_info.get('username', 'N/A')
-        user_id = user_info.get('user_id', user_info.get('id', 'N/A'))
-        language = user_info.get('language_code', 'N/A').upper()
-        is_premium = "✨ Yes" if user_info.get('is_premium') else "No"
+        if not user_name:
+            user_name = f"{telegram_user.first_name or ''} {telegram_user.last_name or ''}".strip()
+
+        username = user_info.get('username') or telegram_user.username or 'N/A'
+        user_id = user_info.get('id') or telegram_user.id or 'N/A'
+        language = (user_info.get('language_code') or telegram_user.language_code or 'N/A').upper() if user_info.get('language_code') or telegram_user.language_code else 'N/A'
+        is_premium = "✨ Ha" if (user_info.get('is_premium') or telegram_user.is_premium) else "Yo'q"
 
         # Create a detailed response message
         response_message = (
-            "✅ *Math Expression Received!*\n\n"
-            "📊 *Expression Details:*\n"
+            "✅ *Matematik Ifoda Qabul Qilindi!*\n\n"
+            "📊 *Ifoda Tafsilotlari:*\n"
             f"• LaTeX: `{latex}`\n"
-            f"• Plain Text: `{text}`\n\n"
-            "👤 *User Information:*\n"
-            f"• Name: {user_name}\n"
-            f"• Username: @{username if username != 'N/A' else 'none'}\n"
-            f"• User ID: `{user_id}`\n"
-            f"• Language: {language}\n"
+            f"• Oddiy Matn: `{text}`\n\n"
+            "👤 *Foydalanuvchi Ma'lumotlari:*\n"
+            f"• Ism: {user_name}\n"
+            f"• Foydalanuvchi nomi: @{username if username != 'N/A' else 'yoq'}\n"
+            f"• Foydalanuvchi ID: `{user_id}`\n"
+            f"• Til: {language}\n"
             f"• Premium: {is_premium}\n\n"
             "🕐 *Metadata:*\n"
-            f"• Time: {formatted_time}\n"
-            f"• Platform: {platform}\n"
-            f"• WebApp Version: {version}\n\n"
-            "🎯 You can send another expression anytime!"
+            f"• Vaqt: {formatted_time}\n"
+            f"• Platforma: {platform}\n"
+            f"• WebApp Versiyasi: {version}\n\n"
+            "🎯 Siz istalgan vaqtda boshqa ifoda yuborishingiz mumkin!"
         )
 
         # Send a confirmation message with all details
@@ -106,32 +129,32 @@ async def handle_web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE
     except json.JSONDecodeError as e:
         logger.error(f"JSON decode error: {e}")
         await update.message.reply_text(
-            "❌ Sorry, there was an error parsing your data.\n"
-            "Please try again.",
+            "❌ Kechirasiz, ma'lumotlarni tahlil qilishda xatolik yuz berdi.\n"
+            "Iltimos, qaytadan urinib ko'ring.",
             parse_mode='Markdown'
         )
     except Exception as e:
         logger.error(f"Error handling web app data: {e}")
         await update.message.reply_text(
-            "❌ Sorry, there was an unexpected error processing your data.\n"
-            "Please try again later.",
+            "❌ Kechirasiz, ma'lumotlarni qayta ishlashda kutilmagan xatolik yuz berdi.\n"
+            "Iltimos, keyinroq qaytadan urinib ko'ring.",
             parse_mode='Markdown'
         )
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send a help message."""
     await update.message.reply_text(
-        "📚 *Math Keyboard Bot - Help*\n\n"
-        "This bot provides a custom math keyboard interface.\n\n"
-        "*Commands:*\n"
-        "/start - Open the math keyboard\n"
-        "/help - Show this help message\n\n"
-        "*How to use:*\n"
-        "1. Click the '🧮 Open Math Keyboard' button\n"
-        "2. Use the custom keyboard to input your math expression\n"
-        "3. The mobile keyboard won't interfere with your input\n"
-        "4. Submit your expression when ready\n\n"
-        "Enjoy mathematical typing! 🎯",
+        "📚 *Matematik Klaviatura Boti - Yordam*\n\n"
+        "Ushbu bot maxsus matematik klaviatura interfeysini taqdim etadi.\n\n"
+        "*Buyruqlar:*\n"
+        "/start - Matematik klaviaturani ochish\n"
+        "/help - Ushbu yordam xabarini ko'rsatish\n\n"
+        "*Foydalanish bo'yicha ko'rsatma:*\n"
+        "1. '🧮 Matematik Klaviaturani Ochish' tugmasini bosing\n"
+        "2. Matematik ifodangizni kiritish uchun maxsus klaviaturadan foydalaning\n"
+        "3. Mobil klaviaturangiz aralashmaydi\n"
+        "4. Tayyor bo'lganda ifodangizni yuboring\n\n"
+        "Matematikadan bahramand bo'ling! 🎯",
         parse_mode='Markdown'
     )
 

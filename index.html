@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>MathQuill with Custom Keyboard</title>
+  <title>Maxsus Matematik Klaviatura</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.css" />
   <style>
@@ -137,30 +137,30 @@
 </head>
 <body>
   <div id="user-info">
-    <h3>👤 User Information</h3>
+    <h3>👤 Foydalanuvchi Ma'lumotlari</h3>
     <div class="info-row">
-      <span class="info-label">Name:</span>
-      <span class="info-value" id="user-name">Loading...</span>
+      <span class="info-label">Ism:</span>
+      <span class="info-value" id="user-name">Yuklanmoqda...</span>
     </div>
     <div class="info-row">
-      <span class="info-label">Username:</span>
-      <span class="info-value" id="user-username">Loading...</span>
+      <span class="info-label">Foydalanuvchi nomi:</span>
+      <span class="info-value" id="user-username">Yuklanmoqda...</span>
     </div>
     <div class="info-row">
-      <span class="info-label">User ID:</span>
-      <span class="info-value" id="user-id">Loading...</span>
+      <span class="info-label">Foydalanuvchi ID:</span>
+      <span class="info-value" id="user-id">Yuklanmoqda...</span>
     </div>
     <div class="info-row">
-      <span class="info-label">Language:</span>
-      <span class="info-value" id="user-language">Loading...</span>
+      <span class="info-label">Til:</span>
+      <span class="info-value" id="user-language">Yuklanmoqda...</span>
     </div>
   </div>
 
-  <h2>🖥️ MathQuill with Custom Math Keyboard</h2>
+  <h2>🖥️ Maxsus Matematik Klaviatura</h2>
   <div>
     <span id="math-field"></span>
   </div>
-  <p id="input-placeholder">👆 Click above to start typing</p>
+  <p id="input-placeholder">👆 Yozishni boshlash uchun yuqoriga bosing</p>
 
   <div class="keyboard" id="custom-keyboard">
     <button data-cmd="7">7</button>
@@ -221,18 +221,18 @@
           `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'N/A';
 
         document.getElementById('user-username').textContent =
-          user.username ? `@${user.username}` : 'No username';
+          user.username ? `@${user.username}` : 'Yo\'q';
 
-        document.getElementById('user-id').textContent = user.id || 'N/A';
+        document.getElementById('user-id').textContent = user.id || 'Yo\'q';
 
         document.getElementById('user-language').textContent =
-          user.language_code?.toUpperCase() || 'N/A';
+          user.language_code?.toUpperCase() || 'Yo\'q';
       } else {
         // Fallback for testing outside Telegram
-        document.getElementById('user-name').textContent = 'Demo User';
+        document.getElementById('user-name').textContent = 'Demo Foydalanuvchi';
         document.getElementById('user-username').textContent = '@demo';
         document.getElementById('user-id').textContent = '123456789';
-        document.getElementById('user-language').textContent = 'EN';
+        document.getElementById('user-language').textContent = 'UZ';
       }
     }
 
@@ -366,7 +366,7 @@
       const text = mathField.text(); // Get plain text representation
 
       if (!latex || latex.trim() === '') {
-        tg.showAlert('Please enter a math expression first!');
+        tg.showAlert('Iltimos, avval matematik ifoda kiriting!');
         return;
       }
 
@@ -406,7 +406,7 @@
     }
 
     // Configure and setup Telegram's MainButton
-    tg.MainButton.text = "Send Expression";
+    tg.MainButton.text = "Ifodani Yuborish";
     tg.MainButton.color = tg.themeParams.button_color || "#3390ec";
     tg.MainButton.textColor = tg.themeParams.button_text_color || "#ffffff";
 
