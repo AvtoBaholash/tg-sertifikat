@@ -119,9 +119,63 @@
       margin-top: 10px;
       font-style: italic;
     }
+    #user-info {
+      background: var(--tg-theme-secondary-bg-color, #fff);
+      border: 2px solid var(--tg-theme-button-color, #3390ec);
+      border-radius: 12px;
+      padding: 15px;
+      margin-bottom: 20px;
+      text-align: left;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    #user-info h3 {
+      margin: 0 0 10px 0;
+      color: var(--tg-theme-button-color, #3390ec);
+      font-size: 18px;
+    }
+    #user-info .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 5px 0;
+      border-bottom: 1px solid var(--tg-theme-hint-color, #eee);
+    }
+    #user-info .info-row:last-child {
+      border-bottom: none;
+    }
+    #user-info .info-label {
+      font-weight: bold;
+      color: var(--tg-theme-text-color, #333);
+    }
+    #user-info .info-value {
+      color: var(--tg-theme-hint-color, #666);
+      text-align: right;
+    }
   </style>
 </head>
 <body>
+  <div id="user-info">
+    <h3>👤 User Information</h3>
+    <div class="info-row">
+      <span class="info-label">Name:</span>
+      <span class="info-value" id="user-name">Loading...</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Username:</span>
+      <span class="info-value" id="user-username">Loading...</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">User ID:</span>
+      <span class="info-value" id="user-id">Loading...</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Language:</span>
+      <span class="info-value" id="user-language">Loading...</span>
+    </div>
+  </div>
+
   <h2>🖥️ MathQuill with Custom Math Keyboard</h2>
   <div>
     <span id="math-field"></span>
@@ -178,6 +232,34 @@
     // Apply Telegram theme colors
     document.body.style.backgroundColor = tg.themeParams.bg_color || '#f9f9f9';
     document.body.style.color = tg.themeParams.text_color || '#000000';
+
+    // Display User Information from Telegram
+    function displayUserInfo() {
+      const user = tg.initDataUnsafe?.user;
+
+      if (user) {
+        // Populate user information
+        document.getElementById('user-name').textContent =
+          `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'N/A';
+
+        document.getElementById('user-username').textContent =
+          user.username ? `@${user.username}` : 'No username';
+
+        document.getElementById('user-id').textContent = user.id || 'N/A';
+
+        document.getElementById('user-language').textContent =
+          user.language_code?.toUpperCase() || 'N/A';
+      } else {
+        // Fallback for testing outside Telegram
+        document.getElementById('user-name').textContent = 'Demo User';
+        document.getElementById('user-username').textContent = '@demo';
+        document.getElementById('user-id').textContent = '123456789';
+        document.getElementById('user-language').textContent = 'EN';
+      }
+    }
+
+    // Call the function to display user info on load
+    displayUserInfo();
 
     // Initialize MathQuill
     var MQ = MathQuill.getInterface(2);
@@ -309,12 +391,33 @@
         return;
       }
 
-      // Send data back to the bot
-      tg.sendData(JSON.stringify({
+      // Get user information
+      const user = tg.initDataUnsafe?.user || {};
+
+      // Prepare comprehensive data payload
+      const payload = {
+        // Math expression data
         latex: latex,
         text: text,
-        timestamp: new Date().toISOString()
-      }));
+
+        // User information
+        user: {
+          id: user.id,
+          first_name: user.first_name,
+          last_name: user.last_name,
+          username: user.username,
+          language_code: user.language_code,
+          is_premium: user.is_premium || false
+        },
+
+        // Metadata
+        timestamp: new Date().toISOString(),
+        platform: tg.platform || 'unknown',
+        version: tg.version || 'unknown'
+      };
+
+      // Send data back to the bot
+      tg.sendData(JSON.stringify(payload));
 
       // Close the Web App
       tg.close();

@@ -41,22 +41,81 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def handle_web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle data sent from the Web App."""
     try:
+        import json
+        from datetime import datetime
+
         # Get the data sent from the Web App
         data = update.message.web_app_data.data
 
-        # Send a confirmation message
+        # Parse the JSON data
+        parsed_data = json.loads(data)
+
+        # Extract information
+        latex = parsed_data.get('latex', 'N/A')
+        text = parsed_data.get('text', 'N/A')
+        user_info = parsed_data.get('user', {})
+        timestamp = parsed_data.get('timestamp', 'N/A')
+        platform = parsed_data.get('platform', 'unknown')
+        version = parsed_data.get('version', 'unknown')
+
+        # Format the timestamp
+        try:
+            dt = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+            formatted_time = dt.strftime('%Y-%m-%d %H:%M:%S UTC')
+        except:
+            formatted_time = timestamp
+
+        # Build user information string
+        user_name = f"{user_info.get('first_name', '')} {user_info.get('last_name', '')}".strip()
+        username = user_info.get('username', 'N/A')
+        user_id = user_info.get('user_id', user_info.get('id', 'N/A'))
+        language = user_info.get('language_code', 'N/A').upper()
+        is_premium = "✨ Yes" if user_info.get('is_premium') else "No"
+
+        # Create a detailed response message
+        response_message = (
+            "✅ *Math Expression Received!*\n\n"
+            "📊 *Expression Details:*\n"
+            f"• LaTeX: `{latex}`\n"
+            f"• Plain Text: `{text}`\n\n"
+            "👤 *User Information:*\n"
+            f"• Name: {user_name}\n"
+            f"• Username: @{username if username != 'N/A' else 'none'}\n"
+            f"• User ID: `{user_id}`\n"
+            f"• Language: {language}\n"
+            f"• Premium: {is_premium}\n\n"
+            "🕐 *Metadata:*\n"
+            f"• Time: {formatted_time}\n"
+            f"• Platform: {platform}\n"
+            f"• WebApp Version: {version}\n\n"
+            "🎯 You can send another expression anytime!"
+        )
+
+        # Send a confirmation message with all details
         await update.message.reply_text(
-            f"✅ Received your math expression:\n\n"
-            f"`{data}`\n\n"
-            "Great job! You can send another expression anytime.",
+            response_message,
             parse_mode='Markdown'
         )
 
-        logger.info(f"User {update.effective_user.id} sent: {data}")
+        # Log the detailed information
+        logger.info(
+            f"User {update.effective_user.id} ({user_name}) sent expression: {text} "
+            f"[LaTeX: {latex}] from platform: {platform}"
+        )
+
+    except json.JSONDecodeError as e:
+        logger.error(f"JSON decode error: {e}")
+        await update.message.reply_text(
+            "❌ Sorry, there was an error parsing your data.\n"
+            "Please try again.",
+            parse_mode='Markdown'
+        )
     except Exception as e:
         logger.error(f"Error handling web app data: {e}")
         await update.message.reply_text(
-            "❌ Sorry, there was an error processing your data."
+            "❌ Sorry, there was an unexpected error processing your data.\n"
+            "Please try again later.",
+            parse_mode='Markdown'
         )
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
