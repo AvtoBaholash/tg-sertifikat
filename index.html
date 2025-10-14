@@ -431,35 +431,27 @@
           // Inline/Menu button - has user data but sendData might not work
           console.log('Inline/Menu button detected with query_id:', queryId);
 
-          // Create formatted message
-          const formattedMessage = `📊 Matematik Ifoda:\n\nLaTeX: ${latex}\nOddiy matn: ${text}\n\n⏰ ${new Date().toLocaleString('uz-UZ')}`;
+          // Get user information
+          const userDisplayName = user.first_name || 'Foydalanuvchi';
+          const userUsername = user.username ? `@${user.username}` : '';
 
-          // Try clipboard first
-          if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(formattedMessage).then(() => {
-              console.log('Copied to clipboard successfully');
+          // Create formatted popup message with expression and user info
+          const popupMessage =
+            `📊 Ifoda:\n` +
+            `LaTeX: ${latex}\n` +
+            `Matn: ${text}\n\n` +
+            `👤 Foydalanuvchi:\n` +
+            `${userDisplayName} ${userUsername}\n\n` +
+            `⏰ ${new Date().toLocaleString('uz-UZ')}`;
 
-              // Show success popup
-              tg.showPopup({
-                title: '✅ Tayyor!',
-                message: 'Ifoda clipboardga nusxalandi!\n\nChatga paste qiling (Ctrl+V yoki uzun bosib "Paste")',
-                buttons: [{id: 'ok', type: 'default', text: 'OK'}]
-              }, function() {
-                tg.close();
-              });
-
-            }).catch(err => {
-              console.error('Clipboard failed:', err);
-
-              // Show result in alert if clipboard fails
-              tg.showAlert(formattedMessage);
-              setTimeout(() => tg.close(), 2000);
-            });
-          } else {
-            // No clipboard support - just show alert
-            tg.showAlert(formattedMessage);
-            setTimeout(() => tg.close(), 2000);
-          }
+          // Show popup with result
+          tg.showPopup({
+            title: '✅ Natija',
+            message: popupMessage,
+            buttons: [{id: 'ok', type: 'default', text: 'OK'}]
+          }, function() {
+            tg.close();
+          });
 
         } else if (typeof tg.sendData === 'function') {
           // Keyboard button - can use sendData
