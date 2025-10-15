@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Formulalar muharriri</title>
+
+  <!-- MathLive (modul sifatida) -->
+  <script type="module">
+    import 'https://unpkg.com/mathlive?module';
+  </script>
+
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #f3f6fb;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    math-field {
+      width: 90%;
+      max-width: 800px;
+      min-height: 120px;
+      font-size: 1.6em;
+      border: 2px solid #0078d7;
+      border-radius: 12px;
+      padding: 15px;
+      background: white;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- 🔹 Faqat bitta matematik muharrir -->
+  <math-field id="mathInput" virtual-keyboard-mode="onfocus" virtual-keyboard-theme="material"
+    placeholder="Formulani yozing... (masalan: ∫ sin(x) dx)">
+  </math-field>
+
+</body>
+
+</html>

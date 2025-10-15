@@ -1,11 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uz">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Maxsus Matematik Klaviatura</title>
+  <title>Matematik Formulalar Muharriri</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.css" />
+  <!-- MathLive (modul sifatida) -->
+  <script type="module">
+    import 'https://unpkg.com/mathlive?module';
+  </script>
   <style>
     * {
       -webkit-touch-callout: none;
@@ -13,108 +16,30 @@
       user-select: none;
     }
     body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      text-align: center;
-      background: var(--tg-theme-bg-color, #f9f9f9);
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: var(--tg-theme-bg-color, #f3f6fb);
       color: var(--tg-theme-text-color, #000);
       margin: 0;
+      padding: 20px;
       overflow-x: hidden;
-    }
-    #math-field {
-      display: inline-block;
-      width: 90%;
-      min-height: 60px;
-      font-size: 24px;
-      border: 2px solid var(--tg-theme-button-color, #ccc);
-      border-radius: 8px;
-      padding: 10px;
-      background: var(--tg-theme-secondary-bg-color, #fff);
-      cursor: pointer;
-      /* Prevent mobile keyboard */
-      -webkit-user-select: none;
-      user-select: none;
-      touch-action: none;
-      pointer-events: auto;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-    #math-field.focused {
-      border-color: var(--tg-theme-button-color, #3390ec);
-      box-shadow: 0 0 0 3px rgba(51, 144, 236, 0.2);
-    }
-    #math-field * {
-      -webkit-user-select: none;
-      user-select: none;
-      pointer-events: none;
-    }
-    #math-field textarea,
-    #math-field input {
-      position: absolute;
-      opacity: 0;
-      height: 0;
-      width: 0;
-      pointer-events: none;
-    }
-    .keyboard {
-      margin-top: 20px;
-      display: none; /* Hidden by default */
-      grid-template-columns: repeat(6, 1fr);
-      gap: 10px;
-      max-width: 500px;
-      margin-left: auto;
-      margin-right: auto;
-      animation: slideUp 0.3s ease-out;
-    }
-    .keyboard.visible {
-      display: grid; /* Show when visible class is added */
-    }
-    @keyframes slideUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    .keyboard button {
-      font-size: 18px;
-      padding: 15px;
-      border: none;
-      border-radius: 8px;
-      background: var(--tg-theme-button-color, #3390ec);
-      color: var(--tg-theme-button-text-color, #fff);
-      cursor: pointer;
-      transition: opacity 0.2s;
-      font-weight: bold;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .keyboard button:active {
-      opacity: 0.7;
-    }
-    #input-placeholder {
-      color: var(--tg-theme-hint-color, #999);
-      font-size: 16px;
-      margin-top: 10px;
-      font-style: italic;
     }
     #user-info {
       background: var(--tg-theme-secondary-bg-color, #fff);
-      border: 2px solid var(--tg-theme-button-color, #3390ec);
+      border: 2px solid var(--tg-theme-button-color, #0078d7);
       border-radius: 12px;
       padding: 15px;
       margin-bottom: 20px;
       text-align: left;
-      max-width: 500px;
+      max-width: 800px;
       margin-left: auto;
       margin-right: auto;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
     }
     #user-info h3 {
       margin: 0 0 10px 0;
-      color: var(--tg-theme-button-color, #3390ec);
+      color: var(--tg-theme-button-color, #0078d7);
       font-size: 18px;
+      text-align: center;
     }
     #user-info .info-row {
       display: flex;
@@ -132,6 +57,51 @@
     #user-info .info-value {
       color: var(--tg-theme-hint-color, #666);
       text-align: right;
+    }
+    .editor-container {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .editor-container h2 {
+      color: var(--tg-theme-text-color, #000);
+      margin-bottom: 15px;
+    }
+    math-field {
+      width: 90%;
+      max-width: 800px;
+      min-height: 120px;
+      font-size: 1.6em;
+      border: 2px solid var(--tg-theme-button-color, #0078d7);
+      border-radius: 12px;
+      padding: 15px;
+      background: var(--tg-theme-secondary-bg-color, white);
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+      display: inline-block;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    math-field:focus {
+      border-color: var(--tg-theme-button-color, #0078d7);
+      box-shadow: 0 0 0 3px rgba(0, 120, 215, 0.2);
+      outline: none;
+    }
+    #input-placeholder {
+      color: var(--tg-theme-hint-color, #999);
+      font-size: 16px;
+      margin-top: 10px;
+      font-style: italic;
+    }
+    .keyboard-info {
+      text-align: center;
+      color: var(--tg-theme-hint-color, #666);
+      font-size: 14px;
+      margin-top: 10px;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+      padding: 10px;
+      background: var(--tg-theme-secondary-bg-color, #fff);
+      border-radius: 8px;
+      border: 1px solid var(--tg-theme-hint-color, #eee);
     }
   </style>
 </head>
@@ -156,51 +126,18 @@
     </div>
   </div>
 
-  <h2>🖥️ Maxsus Matematik Klaviatura</h2>
-  <div>
-    <span id="math-field"></span>
-  </div>
-  <p id="input-placeholder">👆 Yozishni boshlash uchun yuqoriga bosing</p>
-
-  <div class="keyboard" id="custom-keyboard">
-    <button data-cmd="7">7</button>
-    <button data-cmd="8">8</button>
-    <button data-cmd="9">9</button>
-    <button data-cmd="+">+</button>
-    <button data-cmd="-">−</button>
-    <button data-cmd="*">×</button>
-
-    <button data-cmd="4">4</button>
-    <button data-cmd="5">5</button>
-    <button data-cmd="6">6</button>
-    <button data-cmd="/">÷</button>
-    <button data-cmd="=">=</button>
-    <button data-cmd="<"><</button>
-
-    <button data-cmd="1">1</button>
-    <button data-cmd="2">2</button>
-    <button data-cmd="3">3</button>
-    <button data-cmd=">">></button>
-    <button data-fn="power">x^n</button>
-    <button data-fn="frac">a/b</button>
-
-    <button data-cmd="0">0</button>
-    <button data-cmd=".">.</button>
-    <button data-fn="sqrt">√</button>
-    <button data-cmd="x">x</button>
-    <button data-cmd="y">y</button>
-    <button data-cmd="z">z</button>
-
-    <button data-cmd="a">a</button>
-    <button data-cmd="b">b</button>
-    <button data-cmd="c">c</button>
-    <button data-fn="pi">π</button>
-    <button data-cmd="e">e</button>
-    <button onclick="mathField.keystroke('Backspace')">⌫</button>
+  <div class="editor-container">
+    <h2>📐 Matematik Formulalar Muharriri</h2>
+    <math-field id="mathInput" virtual-keyboard-mode="onfocus" virtual-keyboard-theme="material"
+      placeholder="Formulani yozing... (masalan: ∫ sin(x) dx)">
+    </math-field>
+    <p id="input-placeholder">👆 Yozishni boshlash uchun yuqoriga bosing</p>
+    <div class="keyboard-info">
+      💡 <strong>Virtual klaviatura avtomatik ochiladi</strong><br>
+      Matematik belgilar, integral (∫), kasr (a/b), ildiz (√), daraja (x²), trigonometrik funksiyalar va boshqa ifodalarni osongina kiriting.
+    </div>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.min.js"></script>
   <script>
     // Initialize Telegram Web App
     let tg = window.Telegram.WebApp;
@@ -217,7 +154,7 @@
     tg.ready(); // Signal that the app is ready
 
     // Apply Telegram theme colors
-    document.body.style.backgroundColor = tg.themeParams.bg_color || '#f9f9f9';
+    document.body.style.backgroundColor = tg.themeParams.bg_color || '#f3f6fb';
     document.body.style.color = tg.themeParams.text_color || '#000000';
 
     // Display User Information from Telegram
@@ -253,131 +190,38 @@
     // Call the function to display user info on load
     displayUserInfo();
 
-    // Initialize MathQuill
-    var MQ = MathQuill.getInterface(2);
-    var mathFieldSpan = document.getElementById('math-field');
-    var customKeyboard = document.getElementById('custom-keyboard');
-    var placeholder = document.getElementById('input-placeholder');
-    var keyboardVisible = false;
+    // Wait for MathLive to be ready
+    window.addEventListener('DOMContentLoaded', function() {
+      const mathField = document.getElementById('mathInput');
+      const placeholder = document.getElementById('input-placeholder');
 
-    window.mathField = MQ.MathField(mathFieldSpan, {
-      spaceBehavesLikeTab: true,
-      substituteTextarea: function() {
-        // Replace default textarea with a dummy that won't trigger keyboard
-        var dummy = document.createElement('span');
-        dummy.style.position = 'absolute';
-        dummy.style.opacity = '0';
-        dummy.style.height = '0';
-        dummy.style.width = '0';
-        dummy.style.pointerEvents = 'none';
-        return dummy;
-      },
-      handlers: {
-        edit: function() {
-          // Custom edit handler
-        }
-      }
-    });
-
-    // Function to show custom keyboard and enable MainButton
-    function showKeyboard() {
-      if (!keyboardVisible) {
-        customKeyboard.classList.add('visible');
+      // Hide placeholder when math field is focused
+      mathField.addEventListener('focus', function() {
         if (placeholder) placeholder.style.display = 'none';
-        keyboardVisible = true;
-
-        // Enable Telegram's MainButton
+        // Show Telegram's MainButton when user starts editing
         tg.MainButton.show();
+      });
 
-        // Don't actually focus the mathField to prevent keyboard
-        // Just show it as active
-        mathFieldSpan.classList.add('focused');
-      }
-    }
-
-    // Prevent any textareas/inputs inside from getting focus
-    mathFieldSpan.addEventListener('focusin', function(e) {
-      if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') {
-        e.preventDefault();
-        e.stopPropagation();
-        e.target.blur();
-      }
-    }, true);
-
-    // Prevent the native keyboard from appearing and show custom keyboard
-    mathFieldSpan.addEventListener('touchstart', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      showKeyboard();
-
-      // Blur any active input to prevent keyboard
-      if (document.activeElement) {
-        document.activeElement.blur();
-      }
-    }, { passive: false });
-
-    mathFieldSpan.addEventListener('click', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      showKeyboard();
-
-      // Blur any active input to prevent keyboard
-      if (document.activeElement) {
-        document.activeElement.blur();
-      }
-    });
-
-    mathFieldSpan.addEventListener('touchend', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }, { passive: false });
-
-    // Disable text selection and context menu
-    document.addEventListener('selectstart', function(e) {
-      e.preventDefault();
-    });
-
-    document.addEventListener('contextmenu', function(e) {
-      e.preventDefault();
-    });
-
-    // Handle keyboard button clicks
-    document.querySelectorAll(".keyboard button").forEach(btn => {
-      btn.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        let cmd = btn.getAttribute("data-cmd");
-        let fn = btn.getAttribute("data-fn");
-
-        if (cmd) {
-          mathField.write(cmd);
-        } else if (fn === "frac") {
-          mathField.cmd("\\frac");
-        } else if (fn === "sqrt") {
-          mathField.cmd("\\sqrt");
-        } else if (fn === "pi") {
-          mathField.cmd("\\pi");
-        } else if (fn === "power") {
-          mathField.cmd("^");
-        }
-
-        // Prevent keyboard from appearing
-        if (document.activeElement && document.activeElement.blur) {
-          document.activeElement.blur();
+      // Show placeholder when math field is empty and blurred
+      mathField.addEventListener('blur', function() {
+        if (!mathField.value || mathField.value.trim() === '') {
+          if (placeholder) placeholder.style.display = 'block';
         }
       });
 
-      // Prevent keyboard on touch
-      btn.addEventListener("touchstart", (e) => {
-        e.stopPropagation();
-      }, { passive: true });
+      // Monitor changes to show MainButton
+      mathField.addEventListener('input', function() {
+        if (mathField.value && mathField.value.trim() !== '') {
+          tg.MainButton.show();
+          if (placeholder) placeholder.style.display = 'none';
+        }
+      });
     });
 
     // Function to handle submission
     function handleSubmit() {
-      const latex = mathField.latex(); // Get the LaTeX representation
-      const text = mathField.text(); // Get plain text representation
+      const mathField = document.getElementById('mathInput');
+      const latex = mathField.value; // Get the LaTeX representation from MathLive
 
       if (!latex || latex.trim() === '') {
         tg.showAlert('Iltimos, avval matematik ifoda kiriting!');
@@ -394,7 +238,6 @@
       const payload = {
         // Math expression data
         latex: latex,
-        text: text,
 
         // User information
         user: {
@@ -438,8 +281,7 @@
           // Create formatted popup message with expression and user info
           const popupMessage =
             `📊 Ifoda:\n` +
-            `LaTeX: ${latex}\n` +
-            `Matn: ${text}\n\n` +
+            `LaTeX: ${latex}\n\n` +
             `👤 Foydalanuvchi:\n` +
             `${userDisplayName} ${userUsername}\n\n` +
             `⏰ ${new Date().toLocaleString('uz-UZ')}`;
@@ -487,10 +329,10 @@
 
     // Configure and setup Telegram's MainButton
     tg.MainButton.text = "Ifodani Yuborish";
-    tg.MainButton.color = tg.themeParams.button_color || "#3390ec";
+    tg.MainButton.color = tg.themeParams.button_color || "#0078d7";
     tg.MainButton.textColor = tg.themeParams.button_text_color || "#ffffff";
 
-    // Initially hide the MainButton (show it when keyboard appears)
+    // Initially hide the MainButton (show it when user starts editing)
     tg.MainButton.hide();
 
     // Attach click handler to MainButton
