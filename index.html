@@ -79,6 +79,11 @@
       display: inline-block;
       transition: border-color 0.2s, box-shadow 0.2s;
     }
+    math-field::part(placeholder) {
+      font-size: 0.5em;
+      color: var(--tg-theme-hint-color, #999);
+      opacity: 0.65;
+    }
     math-field:focus {
       border-color: var(--tg-theme-button-color, #0078d7);
       box-shadow: 0 0 0 3px rgba(0, 120, 215, 0.2);
@@ -127,15 +132,11 @@
   </div>
 
   <div class="editor-container">
-    <h2>📐 Matematik Formulalar Muharriri</h2>
+    <h4>📐 Matematik Formulalar Muharriri</h4>
     <math-field id="mathInput" virtual-keyboard-mode="onfocus" virtual-keyboard-theme="material"
       placeholder="Formulani yozing... (masalan: ∫ sin(x) dx)">
     </math-field>
     <p id="input-placeholder">👆 Yozishni boshlash uchun yuqoriga bosing</p>
-    <div class="keyboard-info">
-      💡 <strong>Virtual klaviatura avtomatik ochiladi</strong><br>
-      Matematik belgilar, integral (∫), kasr (a/b), ildiz (√), daraja (x²), trigonometrik funksiyalar va boshqa ifodalarni osongina kiriting.
-    </div>
   </div>
 
   <script>
