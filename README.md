@@ -218,3 +218,5 @@ This project is open source and available for educational purposes.
 **Questions?** Check the documentation files above or review the troubleshooting sections.
 
 **Ready to start?** Go to [QUICK_START.md](QUICK_START.md) now! 🚀
+
+#### Jenkins config 
